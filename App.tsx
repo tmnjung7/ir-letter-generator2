@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { INITIAL_STATE_KOR } from './constants';
 import { IRLetterState } from './types';
@@ -24,7 +23,7 @@ const App: React.FC = () => {
     if (lang === 'ENG') return;
     setIsTranslating(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Translate the following IR Letter JSON data from Korean to English. 
@@ -51,63 +50,71 @@ const App: React.FC = () => {
   const switchToKorean = () => {
     if (lang === 'KOR') return;
     setLang('KOR');
-    // 실제 운영에서는 캐싱된 국문 데이터를 불러오거나 초기 상태로 복구할 수 있습니다.
+    setData(INITIAL_STATE_KOR);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-[#f1f5f9] flex flex-col font-sans">
       {/* Header */}
-      <header className="bg-[#002B5B] text-white p-4 shadow-xl flex items-center justify-between no-print sticky top-0 z-50">
-        <div className="flex items-center gap-8">
+      <header className="bg-white border-b border-slate-200 text-slate-800 p-4 shadow-sm flex items-center justify-between no-print sticky top-0 z-50 px-8">
+        <div className="flex items-center gap-10">
           <div className="flex items-center gap-3">
-            <div className="bg-white/10 p-1.5 rounded-lg">
-              <LayoutDashboard className="w-6 h-6" />
+            <div className="bg-[#002B5B] p-2 rounded-xl shadow-lg">
+              <LayoutDashboard className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-xl font-black tracking-tighter">(주)KCC IR LETTER</h1>
+            <div>
+              <h1 className="text-lg font-black tracking-tight text-[#002B5B] leading-none">KCC IR SYSTEM</h1>
+              <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Letter Generator v1.0</p>
+            </div>
           </div>
           
-          <div className="flex bg-white/10 rounded-xl p-1 border border-white/20 shadow-inner">
+          <div className="flex bg-slate-100 rounded-xl p-1 border border-slate-200">
             <button 
               onClick={switchToKorean}
-              className={`px-6 py-2 rounded-lg text-sm font-black transition-all duration-200 ${lang === 'KOR' ? 'bg-white text-[#002B5B] shadow-lg scale-105' : 'hover:bg-white/10 text-white/70'}`}
+              className={`px-6 py-2 rounded-lg text-xs font-black transition-all duration-200 ${lang === 'KOR' ? 'bg-white text-[#002B5B] shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
             >
-              KOR
+              국문 (KOR)
             </button>
             <button 
               onClick={translateToEnglish}
               disabled={isTranslating}
-              className={`px-6 py-2 rounded-lg text-sm font-black transition-all duration-200 flex items-center gap-2 ${lang === 'ENG' ? 'bg-white text-[#002B5B] shadow-lg scale-105' : 'hover:bg-white/10 text-white/70 opacity-80'}`}
+              className={`px-6 py-2 rounded-lg text-xs font-black transition-all duration-200 flex items-center gap-2 ${lang === 'ENG' ? 'bg-white text-[#002B5B] shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
             >
               {isTranslating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Languages className="w-3 h-3" />}
-              ENG (AI Auto)
+              AI 영문 변환
             </button>
           </div>
         </div>
 
         <button 
           onClick={handlePrint}
-          className="flex items-center gap-2 bg-[#F59E0B] hover:bg-[#D97706] text-white transition-all transform hover:scale-105 px-6 py-2.5 rounded-xl font-black text-sm shadow-xl active:scale-95"
+          className="flex items-center gap-2 bg-[#002B5B] hover:bg-slate-800 text-white transition-all transform px-6 py-2.5 rounded-xl font-bold text-sm shadow-md active:scale-95"
         >
           <FileDown className="w-4 h-4" />
-          PDF 다운로드 / 인쇄
+          PDF 다운로드
         </button>
       </header>
 
       {/* Workspace */}
       <main className="flex-1 flex overflow-hidden">
         {/* Editor (Left) */}
-        <div className="w-1/3 min-w-[420px] border-r bg-white overflow-y-auto no-print shadow-2xl z-10">
+        <div className="w-[420px] border-r border-slate-200 bg-white overflow-y-auto no-print shadow-sm z-10">
           <div className="p-8">
-            <div className="flex items-center gap-2 mb-8 pb-4 border-b border-gray-100">
-              <Settings className="w-6 h-6 text-blue-500" />
-              <h2 className="text-xl font-black text-gray-800 tracking-tight">콘텐츠 편집기 ({lang})</h2>
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-[#002B5B]" />
+                <h2 className="text-lg font-black text-slate-800">콘텐츠 편집</h2>
+              </div>
+              <span className="bg-slate-100 text-slate-500 text-[10px] px-2 py-1 rounded font-bold">{lang} MODE</span>
             </div>
             {isTranslating ? (
-              <div className="flex flex-col items-center justify-center py-40 text-gray-400 gap-6">
-                <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+              <div className="flex flex-col items-center justify-center py-40 text-slate-400 gap-6">
+                <div className="relative">
+                   <div className="w-16 h-16 border-4 border-slate-100 border-t-[#002B5B] rounded-full animate-spin"></div>
+                </div>
                 <div className="text-center">
-                  <p className="text-lg font-black text-gray-700">Gemini AI 번역 중...</p>
-                  <p className="text-sm">전문 금융 용어로 최적화하고 있습니다.</p>
+                  <p className="text-base font-black text-slate-700">Gemini AI가 번역 중입니다</p>
+                  <p className="text-xs mt-1 text-slate-400 font-medium">금융 전문 용어를 분석하여 최적화하고 있습니다.</p>
                 </div>
               </div>
             ) : (
@@ -117,15 +124,17 @@ const App: React.FC = () => {
         </div>
 
         {/* Preview (Right) */}
-        <div className="flex-1 bg-gray-200 overflow-y-auto flex justify-center p-12 print-area scroll-smooth">
-          <div className="shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] bg-white relative origin-top scale-95 lg:scale-100 transition-all duration-500 rounded-sm">
+        <div className="flex-1 bg-slate-100 overflow-y-auto flex justify-center p-12 print-area scroll-smooth">
+          <div className="shadow-2xl bg-white relative transition-all duration-500 origin-top transform scale-[0.85] lg:scale-[0.9] xl:scale-[1.0] mb-20">
              <Preview data={data} />
           </div>
         </div>
       </main>
 
-      <footer className="bg-white border-t p-3 text-center text-[10px] font-bold text-gray-400 no-print">
-        &copy; 2025 (주)KCC Investor Relations System - Interactive Letter Generator v1.0
+      <footer className="bg-white border-t border-slate-200 p-3 text-center text-[10px] font-bold text-slate-400 no-print flex justify-center items-center gap-4">
+        <span>&copy; 2025 (주)KCC Investor Relations System</span>
+        <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+        <span className="text-slate-300">Confidential Financial Report Generator</span>
       </footer>
     </div>
   );
