@@ -55,13 +55,35 @@ const Preview: React.FC<PreviewProps> = ({ data }) => {
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '12px' }}
                       cursor={{ fill: '#f1f5f9' }}
                    />
-                   <Bar yAxisId="left" dataKey="revenue" fill="#3b82f6" barSize={32} radius={[4, 4, 0, 0]}>
+                   <Bar 
+                     yAxisId="left" 
+                     dataKey="revenue" 
+                     fill="#3b82f6" 
+                     barSize={32} 
+                     radius={[4, 4, 0, 0]}
+                     isAnimationActive={false}
+                   >
                      <LabelList dataKey="revenue" position="top" style={{ fontSize: 9, fill: '#3b82f6', fontWeight: 800 }} formatter={(v: number) => v.toLocaleString()} />
                    </Bar>
-                   <Bar yAxisId="left" dataKey="operatingProfit" fill="#1e293b" barSize={24} radius={[4, 4, 0, 0]}>
+                   <Bar 
+                     yAxisId="left" 
+                     dataKey="operatingProfit" 
+                     fill="#1e293b" 
+                     barSize={24} 
+                     radius={[4, 4, 0, 0]}
+                     isAnimationActive={false}
+                   >
                       <LabelList dataKey="operatingProfit" position="top" style={{ fontSize: 8, fill: '#1e293b', fontWeight: 700 }} />
                    </Bar>
-                   <Line yAxisId="right" type="monotone" dataKey="profitRate" stroke="#f59e0b" strokeWidth={3} dot={{ r: 3, fill: '#f59e0b', strokeWidth: 2, stroke: '#fff' }}>
+                   <Line 
+                     yAxisId="right" 
+                     type="monotone" 
+                     dataKey="profitRate" 
+                     stroke="#f59e0b" 
+                     strokeWidth={3} 
+                     dot={{ r: 3, fill: '#f59e0b', strokeWidth: 2, stroke: '#fff' }}
+                     isAnimationActive={false}
+                   >
                      <LabelList dataKey="profitRate" position="top" offset={8} style={{ fontSize: 10, fill: '#d97706', fontWeight: 800 }} formatter={(v: number) => `${v}%`} />
                    </Line>
                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 700, paddingTop: '10px' }} />
@@ -138,9 +160,9 @@ const Preview: React.FC<PreviewProps> = ({ data }) => {
                     <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: '#cbd5e1' }} axisLine={false} tickLine={false} domain={[0, 'auto']} />
                     <Tooltip contentStyle={{ borderRadius: '12px', fontSize: '11px' }} />
                     <Legend verticalAlign="top" align="right" iconType="rect" wrapperStyle={{ fontSize: '9px', fontWeight: 700, paddingBottom: '10px' }} />
-                    <Line type="monotone" dataKey="liquidityRatio" name="유동비율" stroke="#3b82f6" strokeWidth={3} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="debtRatio" name="부채비율" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="equityRatio" name="자기자본" stroke="#ef4444" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 2 }} />
+                    <Line type="monotone" dataKey="liquidityRatio" name="유동비율" stroke="#3b82f6" strokeWidth={3} dot={{ r: 3 }} isAnimationActive={false} />
+                    <Line type="monotone" dataKey="debtRatio" name="부채비율" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 3 }} isAnimationActive={false} />
+                    <Line type="monotone" dataKey="equityRatio" name="자기자본" stroke="#ef4444" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 2 }} isAnimationActive={false} />
                   </LineChart>
                </ResponsiveContainer>
             </div>
