@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { IRLetterState, BusinessHighlight, PerformanceData, IndicatorData } from '../types';
 import { ChevronRight, Sparkles, Loader2 } from 'lucide-react';
