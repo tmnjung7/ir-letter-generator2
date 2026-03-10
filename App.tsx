@@ -124,10 +124,15 @@ const App: React.FC = () => {
         </div>
 
         {/* Preview (Right) */}
-        <div className="flex-1 bg-slate-100 overflow-y-auto flex justify-center p-12 print-area scroll-smooth">
+        <div className="flex-1 bg-slate-100 overflow-y-auto flex justify-center p-12 scroll-smooth no-print">
           <div className="shadow-2xl bg-white relative transition-all duration-500 origin-top transform scale-[0.85] lg:scale-[0.9] xl:scale-[1.0] mb-20">
              <Preview data={data} />
           </div>
+        </div>
+
+        {/* Hidden Print Area */}
+        <div className="hidden print:block print-area">
+          <Preview data={data} />
         </div>
       </main>
 
