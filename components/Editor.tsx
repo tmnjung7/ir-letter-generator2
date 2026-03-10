@@ -10,8 +10,8 @@ interface EditorProps {
 }
 
 const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
-  const [showAIGenerator, setShowAIGenerator] = useState(false);
-  const [keywords, setKeywords] = useState({ 건재: '', 도료: '', 실리콘: '' });
+  const [activeAIIndex, setActiveAIIndex] = useState<number | null>(null);
+  const [aiKeywords, setAiKeywords] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiDraft, setAiDraft] = useState<BusinessHighlight | null>(null);
 
@@ -33,32 +33,41 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
     onUpdate('indicatorHistory', newData);
   };
 
-  const handleGenerateAI = async () => {
+  const handleGenerateAI = async (index: number) => {
     setIsGenerating(true);
     setAiDraft(null);
+    const targetHighlight = data.businessHighlights[index];
+    
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const prompt = `
-      다음은 KCC의 3개 사업부(건재, 도료, 실리콘)에 대한 주요 키워드/실적 데이터입니다.
-      이 키워드들을 바탕으로 IR (Investor Relations) 레터에 들어갈 '사업별 주요 성과' 문구를 전문적이고 깔끔하게 작성해주세요.
-      각 사업부별로 1~2줄의 명확하고 신뢰감 있는 문장으로 정리해주세요.
+      다음은 KCC IR 레터의 '${targetHighlight.title}' 섹션에 대한 키워드입니다.
+      이 키워드들을 바탕으로 투자자들에게 신뢰감을 줄 수 있는 전문적인 IR 문구를 작성해주세요.
       
-      [키워드]
-      - 건재사업부: ${keywords.건재 || '전방산업 침체 속 수익성 방어'}
-      - 도료사업부: ${keywords.도료 || '자동차/선박 중심 매출 유지'}
-      - 실리콘사업부: ${keywords.실리콘 || '공장 효율화 및 비용 절감'}
+      [섹션 제목]
+      ${targetHighlight.title}
+      
+      [사용자 입력 키워드]
+      ${aiKeywords || '최근 시장 동향 및 대응 전략'}
+      
+      [작성 가이드]
+      1. 전문적인 금융/IR 용어를 사용하세요.
+      2. 문장은 간결하면서도 핵심 내용을 포함해야 합니다.
+      3. 소제목(subtitle)은 해당 섹션의 핵심 요약을 1줄로 작성하세요.
+      4. 세부 내용(details)은 2~3개의 불렛 포인트로 작성하세요.
       
       반드시 아래 JSON 형식으로만 응답해주세요:
       {
-        "title": "${data.quarterTitle.replace('년 ', '년 ').replace('분기', '분기 실적')}",
-        "subtitle": "계절적·일회성 요인 제외 시 견조한 흐름",
+        "title": "${targetHighlight.title}",
+        "subtitle": "섹션의 핵심 요약 문구",
         "details": [
-          "(건재사업부) ...",
-          "(도료사업부) ...",
-          "(실리콘사업부) ..."
+          "첫 번째 세부 성과 또는 동향...",
+          "두 번째 세부 성과 또는 동향...",
+          "세 번째 세부 성과 또는 동향(선택 사항)..."
         ]
       }
       `;
+      
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: prompt,
@@ -68,41 +77,34 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
       });
       
       const responseText = response.text;
-      if (!responseText) {
-        throw new Error("AI 응답이 비어있습니다.");
-      }
+      if (!responseText) throw new Error("AI 응답이 비어있습니다.");
 
       const result = JSON.parse(responseText);
       setAiDraft({
-        title: result.title || "3분기 실적",
-        subtitle: result.subtitle || "계절적·일회성 요인 제외 시 견조한 흐름",
+        title: result.title || targetHighlight.title,
+        subtitle: result.subtitle || "",
         details: result.details || []
       });
     } catch (error) {
       console.error("AI Generation Error:", error);
-      alert("AI 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      alert("AI 생성 중 오류가 발생했습니다.");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const applyDraft = () => {
+  const applyDraft = (index: number) => {
     if (!aiDraft) return;
     const newHighlights = [...data.businessHighlights];
-    if (newHighlights.length > 0) {
-      newHighlights[0] = { 
-        ...newHighlights[0], 
-        title: aiDraft.title,
-        subtitle: aiDraft.subtitle,
-        details: aiDraft.details
-      };
-    } else {
-      newHighlights.push(aiDraft);
-    }
+    newHighlights[index] = { 
+      ...newHighlights[index], 
+      subtitle: aiDraft.subtitle,
+      details: aiDraft.details
+    };
     onUpdate('businessHighlights', newHighlights);
     setAiDraft(null);
-    setShowAIGenerator(false);
-    setKeywords({ 건재: '', 도료: '', 실리콘: '' });
+    setActiveAIIndex(null);
+    setAiKeywords('');
   };
 
   const sectionHeader = (title: string) => (
@@ -158,110 +160,100 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
       </section>
 
       <section>
-        <div className="flex items-center justify-between mb-4">
-          {sectionHeader("사업별 주요 성과")}
-          <button
-            onClick={() => setShowAIGenerator(!showAIGenerator)}
-            className="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            AI 성과 자동 작성
-          </button>
-        </div>
-
-        {showAIGenerator && (
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-2xl border border-blue-100 mb-6 shadow-sm">
-            <h4 className="text-sm font-black text-[#002B5B] mb-4 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-blue-500" />
-              사업부별 키워드 입력
-            </h4>
-            <div className="space-y-3 mb-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">건재사업부</label>
-                <input 
-                  className="w-full border border-blue-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none" 
-                  placeholder="예: 전방산업 침체, 수익성 방어 노력"
-                  value={keywords.건재}
-                  onChange={e => setKeywords({...keywords, 건재: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">도료사업부</label>
-                <input 
-                  className="w-full border border-blue-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none" 
-                  placeholder="예: 자동차/선박 매출 유지, 고부가가치 제품 확대"
-                  value={keywords.도료}
-                  onChange={e => setKeywords({...keywords, 도료: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">실리콘사업부</label>
-                <input 
-                  className="w-full border border-blue-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none" 
-                  placeholder="예: 공장 효율화, 비용 절감, 수익성 개선 기반"
-                  value={keywords.실리콘}
-                  onChange={e => setKeywords({...keywords, 실리콘: e.target.value})}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button 
-                onClick={() => {
-                  setShowAIGenerator(false);
-                  setAiDraft(null);
-                }}
-                className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-200 rounded-lg transition-colors"
-              >
-                취소
-              </button>
-              <button 
-                onClick={handleGenerateAI}
-                disabled={isGenerating}
-                className="flex items-center gap-2 bg-[#002B5B] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-900 transition-colors disabled:opacity-50"
-              >
-                {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                {isGenerating ? '생성 중...' : 'AI 생성하기'}
-              </button>
-            </div>
-
-            {aiDraft && (
-              <div className="mt-6 pt-6 border-t border-blue-200">
-                <h5 className="text-xs font-bold text-blue-800 mb-3 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                  AI 생성 초안 미리보기
-                </h5>
-                <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-sm space-y-3">
-                  <div>
-                    <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">{aiDraft.title}</div>
-                    <div className="text-sm font-extrabold text-slate-900">{aiDraft.subtitle}</div>
-                  </div>
-                  <ul className="space-y-1.5">
-                    {aiDraft.details.map((detail, idx) => (
-                      <li key={idx} className="text-xs text-slate-600 font-medium flex gap-2">
-                        <span className="text-blue-400 font-bold shrink-0">·</span>
-                        <span>{detail}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <button
-                    onClick={applyDraft}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
-                  >
-                    이 초안으로 적용하기
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        {sectionHeader("사업별 주요 성과")}
 
         {data.businessHighlights.map((highlight, idx) => (
-          <div key={idx} className="p-6 border-2 border-gray-100 rounded-2xl bg-white mb-4 space-y-4">
-            <input className="w-full font-black text-base border-b py-1" value={highlight.title} onChange={e => updateHighlight(idx, 'title', e.target.value)} />
-            <input className="w-full italic text-sm text-gray-600 bg-gray-50 p-2 rounded" value={highlight.subtitle} onChange={e => updateHighlight(idx, 'subtitle', e.target.value)} />
-            <textarea className="w-full text-xs border rounded p-3 min-h-[80px]" value={highlight.details.join('\n')} onChange={e => updateHighlight(idx, 'details', e.target.value.split('\n'))} />
+          <div key={idx} className="p-6 border-2 border-gray-100 rounded-2xl bg-white mb-6 space-y-4 shadow-sm hover:border-blue-100 transition-colors">
+            <div className="flex items-center justify-between border-b pb-2">
+              <input className="font-black text-base text-[#002B5B] outline-none w-full" value={highlight.title} onChange={e => updateHighlight(idx, 'title', e.target.value)} />
+              <button
+                onClick={() => {
+                  if (activeAIIndex === idx) {
+                    setActiveAIIndex(null);
+                    setAiDraft(null);
+                  } else {
+                    setActiveAIIndex(idx);
+                    setAiDraft(null);
+                    setAiKeywords('');
+                  }
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ml-4 ${activeAIIndex === idx ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                AI 자동 작성
+              </button>
+            </div>
+
+            {activeAIIndex === idx && (
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100 shadow-inner">
+                <h4 className="text-xs font-black text-[#002B5B] mb-3 flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                  '{highlight.title}' AI 생성 키워드
+                </h4>
+                <div className="space-y-3 mb-4">
+                  <textarea 
+                    className="w-full border border-blue-200 rounded-lg p-3 text-xs focus:ring-2 focus:ring-blue-500 outline-none min-h-[60px]" 
+                    placeholder="해당 섹션의 핵심 성과나 동향 키워드를 입력하세요 (예: 수익성 방어, 시장 점유율 확대, 비용 절감 등)"
+                    value={aiKeywords}
+                    onChange={e => setAiKeywords(e.target.value)}
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button 
+                    onClick={() => {
+                      setActiveAIIndex(null);
+                      setAiDraft(null);
+                    }}
+                    className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-200 rounded-lg transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button 
+                    onClick={() => handleGenerateAI(idx)}
+                    disabled={isGenerating}
+                    className="flex items-center gap-2 bg-[#002B5B] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-900 transition-colors disabled:opacity-50"
+                  >
+                    {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                    {isGenerating ? '생성 중...' : 'AI 생성하기'}
+                  </button>
+                </div>
+
+                {aiDraft && (
+                  <div className="mt-4 pt-4 border-t border-blue-200">
+                    <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-sm space-y-2 mb-4">
+                      <div className="text-sm font-extrabold text-slate-900">{aiDraft.subtitle}</div>
+                      <ul className="space-y-1">
+                        {aiDraft.details.map((detail, dIdx) => (
+                          <li key={dIdx} className="text-xs text-slate-600 font-medium flex gap-2">
+                            <span className="text-blue-400 font-bold shrink-0">·</span>
+                            <span>{detail}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => applyDraft(idx)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
+                      >
+                        이 초안으로 적용하기
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">소제목 (Subtitle)</label>
+                <input className="w-full italic text-sm text-[#002B5B] bg-slate-50 p-3 rounded-xl border border-slate-100 font-medium" value={highlight.subtitle} onChange={e => updateHighlight(idx, 'subtitle', e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">세부 내용 (Details - 줄바꿈으로 구분)</label>
+                <textarea className="w-full text-xs border-2 border-slate-50 rounded-xl p-4 min-h-[100px] leading-relaxed font-medium focus:border-blue-100 outline-none" value={highlight.details.join('\n')} onChange={e => updateHighlight(idx, 'details', e.target.value.split('\n'))} />
+              </div>
+            </div>
           </div>
         ))}
       </section>
