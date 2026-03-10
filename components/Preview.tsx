@@ -44,51 +44,49 @@ const Preview: React.FC<PreviewProps> = ({ data }) => {
               <div className="w-1 h-5 bg-[#002B5B]"></div>
               <h2 className="text-lg font-extrabold text-[#002B5B]">최근 분기별 실적 추이 <span className="text-[10px] font-medium text-gray-400 ml-2">(단위: 억원, %)</span></h2>
             </div>
-            <div className="h-[240px] bg-[#f8fafc] rounded-xl p-4 border border-gray-100">
-               <ResponsiveContainer width="100%" height="100%">
-                 <ComposedChart data={data.performanceHistory} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
-                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                   <XAxis dataKey="quarter" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }} />
-                   <YAxis yAxisId="left" hide />
-                   <YAxis yAxisId="right" orientation="right" hide />
-                   <Tooltip 
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '12px' }}
-                      cursor={{ fill: '#f1f5f9' }}
-                   />
-                   <Bar 
-                     yAxisId="left" 
-                     dataKey="revenue" 
-                     fill="#3b82f6" 
-                     barSize={32} 
-                     radius={[4, 4, 0, 0]}
-                     isAnimationActive={false}
-                   >
-                     <LabelList dataKey="revenue" position="top" style={{ fontSize: 9, fill: '#3b82f6', fontWeight: 800 }} formatter={(v: number) => v.toLocaleString()} />
-                   </Bar>
-                   <Bar 
-                     yAxisId="left" 
-                     dataKey="operatingProfit" 
-                     fill="#1e293b" 
-                     barSize={24} 
-                     radius={[4, 4, 0, 0]}
-                     isAnimationActive={false}
-                   >
-                      <LabelList dataKey="operatingProfit" position="top" style={{ fontSize: 8, fill: '#1e293b', fontWeight: 700 }} />
-                   </Bar>
-                   <Line 
-                     yAxisId="right" 
-                     type="monotone" 
-                     dataKey="profitRate" 
-                     stroke="#f59e0b" 
-                     strokeWidth={3} 
-                     dot={{ r: 3, fill: '#f59e0b', strokeWidth: 2, stroke: '#fff' }}
-                     isAnimationActive={false}
-                   >
-                     <LabelList dataKey="profitRate" position="top" offset={8} style={{ fontSize: 10, fill: '#d97706', fontWeight: 800 }} formatter={(v: number) => `${v}%`} />
-                   </Line>
-                   <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 700, paddingTop: '10px' }} />
-                 </ComposedChart>
-               </ResponsiveContainer>
+            <div className="h-[240px] bg-[#f8fafc] rounded-xl p-4 border border-gray-100 flex justify-center items-center">
+               <ComposedChart width={380} height={240} data={data.performanceHistory} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
+                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                 <XAxis dataKey="quarter" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }} />
+                 <YAxis yAxisId="left" hide />
+                 <YAxis yAxisId="right" orientation="right" hide />
+                 <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '12px' }}
+                    cursor={{ fill: '#f1f5f9' }}
+                 />
+                 <Bar 
+                   yAxisId="left" 
+                   dataKey="revenue" 
+                   fill="#3b82f6" 
+                   barSize={32} 
+                   radius={[4, 4, 0, 0]}
+                   isAnimationActive={false}
+                 >
+                   <LabelList dataKey="revenue" position="top" style={{ fontSize: 9, fill: '#3b82f6', fontWeight: 800 }} formatter={(v: number) => v.toLocaleString()} />
+                 </Bar>
+                 <Bar 
+                   yAxisId="left" 
+                   dataKey="operatingProfit" 
+                   fill="#1e293b" 
+                   barSize={24} 
+                   radius={[4, 4, 0, 0]}
+                   isAnimationActive={false}
+                 >
+                    <LabelList dataKey="operatingProfit" position="top" style={{ fontSize: 8, fill: '#1e293b', fontWeight: 700 }} />
+                 </Bar>
+                 <Line 
+                   yAxisId="right" 
+                   type="monotone" 
+                   dataKey="profitRate" 
+                   stroke="#f59e0b" 
+                   strokeWidth={3} 
+                   dot={{ r: 3, fill: '#f59e0b', strokeWidth: 2, stroke: '#fff' }}
+                   isAnimationActive={false}
+                 >
+                   <LabelList dataKey="profitRate" position="top" offset={8} style={{ fontSize: 10, fill: '#d97706', fontWeight: 800 }} formatter={(v: number) => `${v}%`} />
+                 </Line>
+                 <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 700, paddingTop: '10px' }} />
+               </ComposedChart>
             </div>
           </div>
 
@@ -152,9 +150,8 @@ const Preview: React.FC<PreviewProps> = ({ data }) => {
               <div className="w-1 h-5 bg-[#002B5B]"></div>
               <h2 className="text-lg font-extrabold text-[#002B5B]">KEY INDICATORS <span className="text-[10px] font-medium text-gray-400 ml-2">(재무 건전성 지표)</span></h2>
             </div>
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-[280px]">
-               <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={data.indicatorHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-[280px] flex justify-center items-center">
+                  <LineChart width={640} height={280} data={data.indicatorHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                     <XAxis dataKey="quarter" tick={{ fontSize: 9, fontWeight: 700, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: '#cbd5e1' }} axisLine={false} tickLine={false} domain={[0, 'auto']} />
@@ -164,7 +161,6 @@ const Preview: React.FC<PreviewProps> = ({ data }) => {
                     <Line type="monotone" dataKey="debtRatio" name="부채비율" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 3 }} isAnimationActive={false} />
                     <Line type="monotone" dataKey="equityRatio" name="자기자본" stroke="#ef4444" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 2 }} isAnimationActive={false} />
                   </LineChart>
-               </ResponsiveContainer>
             </div>
           </div>
 
