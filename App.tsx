@@ -130,8 +130,8 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Hidden Print Area */}
-        <div className="hidden print:block print-area">
+        {/* Hidden Print Area (Off-screen to allow Recharts rendering) */}
+        <div className="fixed top-0 left-0 -z-50 opacity-0 pointer-events-none print:static print:z-auto print:opacity-100 print:block print-area">
           <Preview data={data} />
         </div>
       </main>
